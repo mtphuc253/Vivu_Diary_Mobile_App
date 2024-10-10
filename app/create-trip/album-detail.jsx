@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 
 export default function AlbumDetail({ route }) {
-    const { tripName, tripPlace, album } = route.params; // Nhận tham số từ route
+    const { tripName, tripPlace, album } = route.params; 
     const [showFullStatus, setShowFullStatus] = useState(false);
 
     const toggleStatusView = () => {

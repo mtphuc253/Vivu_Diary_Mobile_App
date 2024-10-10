@@ -20,22 +20,14 @@ export default function RootLayout() {
     outfitBold: require("./../assets/fonts/OpenSans-Bold.ttf"),
   });
 
-  // useEffect(() => {
-  //   if (loaded) {
-  //     SplashScreen.hideAsync();
-  //   }
-  // }, [loaded]);
-
-  // if (!loaded) {
-  //   return null;
-  // }
   const [tripData, setTripData] = useState([]);
 
   return (
-    <CreateTripContext.Provider value={{tripData, setTripData}}>
+    <CreateTripContext.Provider value={{ tripData, setTripData }}>
       <Stack screenOptions={{ headerShown: false }}>
         {/* <Stack.Screen name="index" options={{ headerShown: false }} /> */}
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="detail-trip/TripDetail" options={{ headerShown: false }} />
       </Stack>
     </CreateTripContext.Provider>
   );

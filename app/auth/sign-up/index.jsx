@@ -4,7 +4,7 @@ import { Colors } from '../../../constants/Colors';
 import { useNavigation, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { auth } from './../../../configs/FirebaseConfig';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 
 export default function SignUp() {
     const navigation = useNavigation();
@@ -28,10 +28,15 @@ export default function SignUp() {
 
         createUserWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
-                // Signed up 
+
+                sendEmailVerification(auth.currentUser)
+                .then(() => {
+                    alert("Email xác thực đã được gửi. Vui lòng xác thực")
+                })
+
                 const user = userCredential.user;
                 console.log('user: ', user);
-                router.replace('/mytrip');
+                router.replace('/auth/sign-in');
                 
             })
             .catch((error) => {

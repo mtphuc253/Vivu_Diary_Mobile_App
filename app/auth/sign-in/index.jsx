@@ -27,7 +27,6 @@ export default function SignIn() {
 
         signInWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
-                // Signed in 
                 const user = userCredential.user;
                 router.replace('/mytrip');
                 console.log(user);
@@ -49,7 +48,6 @@ export default function SignIn() {
 
     return (
         <View style={styles.container}>
-            {/* Nút Back */}
             <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
                 <Ionicons name="arrow-back" size={24} color="black" />
             </TouchableOpacity>

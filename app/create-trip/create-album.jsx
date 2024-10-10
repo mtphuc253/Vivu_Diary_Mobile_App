@@ -1,11 +1,13 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, Button, ScrollView, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, Button, ScrollView, Image, TouchableOpacity, ActivityIndicator, ToastAndroid } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import { CreateTripContext } from '../../context/CreateTripContext';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../configs/ImageFirebaseConfig';
 import * as FileSystem from 'expo-file-system';
+import { Entypo, Ionicons } from '@expo/vector-icons';
+import { Colors } from '../../constants/Colors';
 
 export default function CreateAlbum() {
     const { tripData, setTripData } = useContext(CreateTripContext);
@@ -13,16 +15,16 @@ export default function CreateAlbum() {
 
     const [albumName, setAlbumName] = useState('');
     const [albumStatus, setAlbumStatus] = useState('');
-    const [albumImgs, setAlbumImgs] = useState([]); // To store URLs after upload
-    const [pickedImgs, setPickedImgs] = useState([]); // Local URIs of picked images
-    const [uploading, setUploading] = useState(false); // Loading state
+    const [albumImgs, setAlbumImgs] = useState([]);
+    const [pickedImgs, setPickedImgs] = useState([]);
+    const [uploading, setUploading] = useState(false);
+    const [isUploaded, setIsUploaded] = useState(false); // Track if upload is completed
 
-    // Pick images from library
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsMultipleSelection: true,
-            selectionLimit: 4, // max 4 images
+            selectionLimit: 4,
         });
 
         if (!result.canceled) {
@@ -30,7 +32,6 @@ export default function CreateAlbum() {
         }
     };
 
-    // Upload image to Firebase and return the URL
     const uploadImage = async (imgUri) => {
         const { uri } = await FileSystem.getInfoAsync(imgUri);
         const blob = await new Promise((resolve, reject) => {
@@ -45,20 +46,15 @@ export default function CreateAlbum() {
         const filename = imgUri.substring(imgUri.lastIndexOf('/') + 1);
         const storageRef = ref(storage, filename);
 
-        // Upload to Firebase Storage
         await uploadBytes(storageRef, blob);
 
-        // Get the URL of the uploaded image
         const downloadURL = await getDownloadURL(storageRef);
         return downloadURL;
     };
 
-    // Handle uploading all picked images
     const handleUploadImages = async () => {
-        setUploading(true); // Start loading
-
+        setUploading(true);
         try {
-            // Upload each image and get their URLs
             const uploadedImgUrls = await Promise.all(
                 pickedImgs.map(async (imgUri) => {
                     const url = await uploadImage(imgUri);
@@ -66,17 +62,20 @@ export default function CreateAlbum() {
                 })
             );
 
-            // After successful upload, store the URLs in albumImgs
             setAlbumImgs(uploadedImgUrls);
+            setIsUploaded(true);
+            setPickedImgs([]);
+
+            ToastAndroid.show('Đăng tải ảnh thành công 🎉', ToastAndroid.LONG);
+
 
         } catch (error) {
             console.error("Error uploading images: ", error);
         } finally {
-            setUploading(false); // Stop loading
+            setUploading(false);
         }
     };
 
-    // Handle creating album with uploaded images
     const handleCreateAlbum = () => {
         if (albumImgs.length === 0) {
             console.error("No images uploaded.");
@@ -87,94 +86,148 @@ export default function CreateAlbum() {
             albumId: new Date().toISOString(),
             albumName: albumName,
             albumStatus: albumStatus,
-            albumImgs: albumImgs.map((url) => ({ imgUrl: url })), // Use URLs from Firebase
+            albumImgs: albumImgs.map((url) => ({ imgUrl: url })),
         };
 
-        // Update tripData with the new album
         const updatedTripData = {
             ...tripData,
             albums: [...(tripData.albums || []), newAlbum],
         };
 
         setTripData(updatedTripData);
-        // console.log("Album created:", updatedTripData);
-        // console.log("Updated tripData:", JSON.stringify(updatedTripData, null, 2));
 
-        // Optional: Navigate back after successful creation
         navigation.goBack();
     };
 
-    // Remove a picked image
     const removeImage = (index) => {
         setPickedImgs(pickedImgs.filter((_, i) => i !== index));
     };
 
     return (
-        <ScrollView contentContainerStyle={{ padding: 20 }}>
-            <Text>Tên Album</Text>
-            <TextInput
-                value={albumName}
-                onChangeText={setAlbumName}
-                placeholder="Nhập tên album"
-                style={{ borderColor: '#ddd', borderWidth: 1, padding: 10, marginBottom: 20 }}
-            />
+        <View style={{ flex: 1, marginTop: 20 }}>
 
-            <Text>Trạng thái Album</Text>
-            <TextInput
-                value={albumStatus}
-                onChangeText={setAlbumStatus}
-                placeholder="Nhập trạng thái album"
-                multiline
-                numberOfLines={4}
-                style={{ borderColor: '#ddd', borderWidth: 1, padding: 10, marginBottom: 20 }}
-            />
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 15, backgroundColor: '#f8f8f8', borderBottomWidth: 1, borderColor: '#ddd' }}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={{ position: 'absolute', left: 15 }}>
+                    <Ionicons name="arrow-back" size={24} color="black" />
+                </TouchableOpacity>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', textAlign: 'center', flex: 1 }}>Album của bạn</Text>
+            </View>
 
-            <TouchableOpacity onPress={pickImage} style={{ marginBottom: 20, backgroundColor: '#007BFF', padding: 15 }}>
-                <Text style={{ color: '#fff', textAlign: 'center' }}>Chọn hình ảnh</Text>
-            </TouchableOpacity>
-
-            <ScrollView horizontal style={{ flexDirection: 'row', marginBottom: 20 }}>
-                {pickedImgs.map((img, index) => (
-                    <View key={index} style={{ position: 'relative', marginRight: 10 }}>
-                        <Image 
-                            source={{ uri: img }}
-                            style={{ width: 100, height: 100 }}
-                        />
-                        {/* X button to remove image */}
-                        <TouchableOpacity
-                            style={{
-                                position: 'absolute',
-                                top: -10,
-                                right: -10,
-                                backgroundColor: 'red',
-                                borderRadius: 10,
-                                width: 20,
-                                height: 20,
-                                justifyContent: 'center',
-                                alignItems: 'center'
-                            }}
-                            onPress={() => removeImage(index)}
-                        >
-                            <Text style={{ color: '#fff', fontWeight: 'bold' }}>X</Text>
-                        </TouchableOpacity>
-                    </View>
-                ))}
-            </ScrollView>
-
-            {/* Show Upload button if images are picked */}
-            {pickedImgs.length > 0 && (
-                <Button
-                    title={uploading ? "Đang tải..." : "Đăng tải hình ảnh"}
-                    onPress={handleUploadImages}
-                    disabled={uploading}
-                    style={{ marginBottom: 20 }}
+            <ScrollView contentContainerStyle={{ padding: 20 }}>
+                <Text
+                    style={{
+                        fontWeight: 700,
+                        fontSize: 16,
+                        marginBottom: 5,
+                    }}
+                >Tên Album</Text>
+                <TextInput
+                    value={albumName}
+                    onChangeText={setAlbumName}
+                    placeholder="Nhập tên album"
+                    style={{ borderColor: '#ddd', borderWidth: 1, padding: 10, marginBottom: 20, borderRadius: 8 }}
                 />
-            )}
 
-            {/* Show Create Album button only if images have been uploaded */}
-            {albumImgs.length > 0 && (
-                <Button title="Tạo Album" onPress={handleCreateAlbum} disabled={uploading} />
-            )}
-        </ScrollView>
+                <Text
+                    style={{
+                        fontWeight: 700,
+                        fontSize: 16,
+                        marginBottom: 5,
+                    }}
+                >Cảm nhận của bạn</Text>
+                <TextInput
+                    value={albumStatus}
+                    onChangeText={setAlbumStatus}
+                    placeholder="Bạn cảm thấy thế nào"
+                    multiline={true}
+                    numberOfLines={10}
+                    style={{ borderColor: '#ddd', borderWidth: 1, padding: 10, marginBottom: 20, borderRadius: 8, minHeight: 100, textAlignVertical: "top" }}
+                />
+
+                <TouchableOpacity onPress={pickImage} style={{ marginBottom: 5, backgroundColor: '#007BFF', padding: 15, borderRadius: 8, backgroundColor: Colors.PRIMARY, marginTop: 40 }}>
+                    <Text style={{ color: '#fff', textAlign: 'center', fontWeight: 700, fontSize: 16 }}>Chọn ảnh</Text>
+                </TouchableOpacity>
+
+                <ScrollView horizontal style={{ flexDirection: 'row', marginBottom: 20 }}>
+                    {pickedImgs.map((img, index) => (
+                        <View key={index} style={{ position: 'relative', marginRight: 10 }}>
+                            <Image
+                                source={{ uri: img }}
+                                style={{ width: 100, height: 100, marginTop: 5 }}
+                            />
+                            <TouchableOpacity
+                                style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    right: -10,
+                                    backgroundColor: Colors.GREY,
+                                    borderRadius: 10,
+                                    width: 20,
+                                    height: 20,
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                }}
+                                onPress={() => removeImage(index)}
+                            >
+                                <Text style={{ color: '#fff', fontWeight: 'bold' }}>
+                                    <Entypo name="cross" size={14} color="white" />
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    ))}
+                </ScrollView>
+
+                {/* Show upload button only if images are not uploaded */}
+                {!isUploaded && pickedImgs.length > 0 && (
+                    <TouchableOpacity
+                        onPress={handleUploadImages}
+                        style={{
+                            borderRadius: 8,
+                            backgroundColor: Colors.WHITE,
+                            borderWidth: 1,
+                            borderColor: Colors.PRIMARY,
+                            padding: 15
+                        }}
+                        disabled={uploading}
+                    >
+                        <Text style={{ color: Colors.PRIMARY, textAlign: 'center', fontWeight: 'bold' }}>
+                            {uploading ? "Đang tải..." : "Đăng tải"}
+                        </Text>
+                    </TouchableOpacity>
+                )}
+
+                {/* Display uploaded images */}
+                {albumImgs.length > 0 && (
+                    <ScrollView horizontal>
+                        {albumImgs.map((img, index) => (
+                            <Image
+                                key={index}
+                                source={{ uri: img }}
+                                style={{ width: 100, height: 100, marginRight: 10, marginBottom: 160 }}
+                            />
+                        ))}
+                    </ScrollView>
+                )}
+
+                {/* Show create album button after upload */}
+                {albumImgs.length > 0 && (
+                    <TouchableOpacity
+                        onPress={handleCreateAlbum}
+                        style={{
+                            borderRadius: 8,
+                            backgroundColor: Colors.WHITE,
+                            borderWidth: 1,
+                            borderColor: Colors.PRIMARY,
+                            padding: 15
+                        }}
+                        disabled={uploading}
+                    >
+                        <Text style={{ color: Colors.PRIMARY, textAlign: 'center', fontWeight: 'bold' }}>
+                            Tạo Album
+                        </Text>
+                    </TouchableOpacity>
+                )}
+            </ScrollView>
+        </View>
     );
 }

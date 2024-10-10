@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { StyleSheet, View, Text, TextInput, SafeAreaView, FlatList, TouchableOpacity, Platform, Image, Alert } from 'react-native';
+import { StyleSheet, View, Text, TextInput, SafeAreaView, FlatList, TouchableOpacity, Platform, Image, Alert, ToastAndroid } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import addressData from '../../vn_map_data.json';
 import { Entypo, Ionicons } from '@expo/vector-icons';
@@ -10,21 +10,19 @@ import * as ImagePicker from 'expo-image-picker'; // For image picking
 import { storage } from '../../configs/ImageFirebaseConfig';
 import * as FileSystem from 'expo-file-system';
 import { useRouter } from 'expo-router';
+import { ActivityIndicator, MD2Colors } from 'react-native-paper';
 
 const SearchPlace = () => {
     const [location, setLocation] = useState('');
     const [suggestions, setSuggestions] = useState([]);
-    const [tripName, setTripName] = useState(''); // State for trip name
-    const [selectedImage, setSelectedImage] = useState(null); // State for selected image
-    const [uploading, setUploading] = useState(false); // State for upload status
+    const [tripName, setTripName] = useState('');
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [uploading, setUploading] = useState(false);
+    const [isUploaded, setIsUploaded] = useState(false);
 
     const navigation = useNavigation();
     const router = useRouter();
     const { tripData, setTripData } = useContext(CreateTripContext);
-
-    // useEffect(() => {
-    //     console.log(tripData)
-    // }, []);
 
     const handleLocationChange = (text) => {
         setLocation(text);
@@ -63,7 +61,6 @@ const SearchPlace = () => {
     };
 
     const pickImage = async () => {
-        // Pick image from the gallery
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.All,
             allowsEditing: true,
@@ -71,11 +68,10 @@ const SearchPlace = () => {
         });
 
         if (!result.canceled) {
-            setSelectedImage(result.assets[0].uri); // Show the selected image in UI
+            setSelectedImage(result.assets[0].uri);
         }
     };
 
-    // Chỉnh sửa hàm uploadMedia
     const uploadMedia = async () => {
         setUploading(true);
 
@@ -103,11 +99,12 @@ const SearchPlace = () => {
 
             setTripData({
                 ...tripData,
-                tripAvt: downloadURL, 
+                tripAvt: downloadURL,
             });
 
-            Alert.alert('Tải ảnh thành công');
-            
+            ToastAndroid.show('Tải ảnh thành công', ToastAndroid.LONG);
+            setIsUploaded(true);
+
         } catch (error) {
             console.error(error);
             Alert.alert('Lỗi tải ảnh');
@@ -119,6 +116,11 @@ const SearchPlace = () => {
 
     const clearSelectedImage = () => {
         setSelectedImage(null);
+        setTripData({
+            ...tripData,
+            tripAvt: '',
+        })
+        setIsUploaded(false);
     };
 
     const handleCreateTrip = () => {
@@ -128,9 +130,8 @@ const SearchPlace = () => {
                 tripName: tripName,
                 tripPlace: location
             });
-            console.log(tripData); // Log tripData for debugging
+            console.log(tripData);
             router.push('/create-trip/select-travel');
-            // You can now navigate or do any further actions needed.
         } else {
             alert('Vui lòng cung cấp đầy đủ thông tin');
         }
@@ -146,7 +147,6 @@ const SearchPlace = () => {
             </View>
 
             <View style={styles.inputContainer}>
-                {/* Input for Trip Name */}
                 <Text style={styles.titleText}>Tên chuyến đi của bạn</Text>
                 <TextInput
                     style={styles.textInput}
@@ -195,8 +195,8 @@ const SearchPlace = () => {
                         <View style={{ position: 'relative' }}>
                             <Image
                                 source={{ uri: selectedImage }}
-                                style={{ width: 300, height: 300 }}
-                            />
+                                style={{ width: 176, height: 99 }}
+                            ></Image>
                             <TouchableOpacity style={styles.clearImageButton} onPress={clearSelectedImage}>
                                 <Entypo name="circle-with-cross" size={24} color={Colors.PRIMARY} />
                             </TouchableOpacity>
@@ -204,9 +204,10 @@ const SearchPlace = () => {
                     )}
 
                     {uploading ? (
-                        <Text>Đang tải lên...</Text>
+                        <ActivityIndicator animating={true} color={Colors.PRIMARY}
+                            style={styles.imageUploadButton} />
                     ) : (
-                        selectedImage && (
+                        selectedImage && !isUploaded && (
                             <TouchableOpacity style={styles.imageUploadButton} onPress={uploadMedia}>
                                 <Text style={styles.imageUploadText}>Đăng tải</Text>
                             </TouchableOpacity>
@@ -310,22 +311,24 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     imageUploadButton: {
-        backgroundColor: '#4CAF50',
+        backgroundColor: Colors.WHITE,
+        borderWidth: 1,
+        borderColor: Colors.PRIMARY,
         padding: 15,
         borderRadius: 8,
         alignItems: 'center',
         marginVertical: 10,
     },
     imageUploadText: {
-        color: '#fff',
+        color: Colors.PRIMARY,
         fontWeight: 'bold',
     },
     createButton: {
-        backgroundColor: '#007BFF',
+        backgroundColor: Colors.PRIMARY,
         padding: 15,
         borderRadius: 8,
         alignItems: 'center',
-        marginTop: 20,
+        marginTop: 80,
     },
     createButtonText: {
         color: '#fff',
@@ -333,7 +336,7 @@ const styles = StyleSheet.create({
     },
     clearImageButton: {
         position: 'absolute',
-        right: 5,
+        left: 140,
         top: 5,
         backgroundColor: 'rgba(255, 255, 255, 0.7)',
         borderRadius: 15,
