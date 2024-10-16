@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { FontAwesome, MaterialIcons, AntDesign, FontAwesome6, Ionicons } from '@expo/vector-icons'; // Import các icon cần dùng
+import { FontAwesome, MaterialIcons, AntDesign, FontAwesome6, Ionicons, SimpleLineIcons } from '@expo/vector-icons'; // Import các icon cần dùng
 import { View, StyleSheet } from 'react-native';
 import { Colors } from '../../constants/Colors';
 
@@ -18,8 +18,14 @@ export default function TabLayout() {
             );
           } else if (route.name === 'discovery') {
             return <Ionicons name="search-outline" size={24} color={color} />;
-          } else if (route.name === 'profile') {
+          } else if (route.name === 'myplan') {
+            return <SimpleLineIcons name="notebook" size={24} color={color} />;
+          }
+          else if (route.name === 'profile') {
             return <AntDesign name="user" size={24} color={color} />;
+          }
+          else if (route.name === 'home') {
+            return <AntDesign name="home" size={24} color={color} />;
           }
         },
         tabBarStyle: styles.tabBarStyle,
@@ -28,9 +34,11 @@ export default function TabLayout() {
         tabBarInactiveTintColor: 'gray',
       })}
     >
-      <Tabs.Screen name="discovery" options={{ title: 'Discovery' }} />
-      <Tabs.Screen name="mytrip" options={{ title: 'My Trip' }} />
-      <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
+      <Tabs.Screen name="home" options={{ title: 'Trang chủ' }} />
+      <Tabs.Screen name="discovery" options={{ title: 'Khám phá' }} />
+      <Tabs.Screen name="mytrip" options={{ title: 'Nhật ký' }} />
+      <Tabs.Screen name="myplan" options={{ title: 'Kế hoạch' }} />
+      <Tabs.Screen name="profile" options={{ title: 'Hồ sơ' }} />
     </Tabs>
   );
 }

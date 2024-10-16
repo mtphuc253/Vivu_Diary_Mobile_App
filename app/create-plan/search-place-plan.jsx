@@ -5,24 +5,16 @@ import addressData from '../../vn_map_data.json';
 import { Entypo, Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
 import { CreateTripContext } from '../../context/CreateTripContext';
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import * as ImagePicker from 'expo-image-picker'; // For image picking
-import { storage } from '../../configs/ImageFirebaseConfig';
-import * as FileSystem from 'expo-file-system';
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, MD2Colors } from 'react-native-paper';
 
 const SearchPlace = () => {
     const [location, setLocation] = useState('');
     const [suggestions, setSuggestions] = useState([]);
     const [tripName, setTripName] = useState('');
-    const [selectedImage, setSelectedImage] = useState(null);
-    const [uploading, setUploading] = useState(false);
-    const [isUploaded, setIsUploaded] = useState(false);
 
     const navigation = useNavigation();
     const router = useRouter();
-    const { tripData, setTripData } = useContext(CreateTripContext);
+    const { planData, setPlanData } = useContext(CreateTripContext);
 
     const handleLocationChange = (text) => {
         setLocation(text);
@@ -31,16 +23,13 @@ const SearchPlace = () => {
             const filteredSuggestions = [];
             addressData.forEach(province => {
                 province.District.forEach(district => {
-                    district.Ward.forEach(ward => {
-                        const fullAddress = `${ward.FullName}, ${district.FullName}, ${province.FullName}`;
-                        if (fullAddress.toLowerCase().includes(text.toLowerCase())) {
-                            filteredSuggestions.push({
-                                ward: ward.FullName,
-                                district: district.FullName,
-                                province: province.FullName
-                            });
-                        }
-                    });
+                    const fullAddress = `${district.FullName}, ${province.FullName}`;
+                    if (fullAddress.toLowerCase().includes(text.toLowerCase())) {
+                        filteredSuggestions.push({
+                            district: district.FullName,
+                            province: province.FullName
+                        });
+                    }
                 });
             });
             setSuggestions(filteredSuggestions);
@@ -49,88 +38,29 @@ const SearchPlace = () => {
         }
     };
 
+
     const handleSuggestionSelect = (suggestion) => {
-        const selectedAddress = `${suggestion.ward}, ${suggestion.district}, ${suggestion.province}`;
+        const selectedAddress = `${suggestion.district}, ${suggestion.province}`;
         setLocation(selectedAddress);
         setSuggestions([]);
     };
+
 
     const handleClearInput = () => {
         setLocation('');
         setSuggestions([]);
     };
 
-    const pickImage = async () => {
-        let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.All,
-            allowsEditing: true,
-            quality: 1,
-        });
-
-        if (!result.canceled) {
-            setSelectedImage(result.assets[0].uri);
-        }
-    };
-
-    const uploadMedia = async () => {
-        setUploading(true);
-
-        try {
-            const { uri } = await FileSystem.getInfoAsync(selectedImage);
-            const blob = await new Promise((resolve, reject) => {
-                const xhr = new XMLHttpRequest();
-                xhr.onload = () => {
-                    resolve(xhr.response);
-                };
-                xhr.onerror = (e) => {
-                    reject(new TypeError('Network request failed'));
-                };
-                xhr.responseType = 'blob';
-                xhr.open('GET', uri, true);
-                xhr.send(null);
-            });
-
-            const filename = selectedImage.substring(selectedImage.lastIndexOf('/') + 1);
-            const storageRef = ref(storage, filename);
-
-            await uploadBytes(storageRef, blob);
-
-            const downloadURL = await getDownloadURL(storageRef);
-
-            setTripData({
-                ...tripData,
-                tripAvt: downloadURL,
-            });
-
-            ToastAndroid.show('Tải ảnh thành công', ToastAndroid.LONG);
-            setIsUploaded(true);
-
-        } catch (error) {
-            console.error(error);
-            Alert.alert('Lỗi tải ảnh');
-        } finally {
-            setUploading(false);
-        }
-    };
-
-
-    const clearSelectedImage = () => {
-        setSelectedImage(null);
-        setTripData({
-            ...tripData,
-            tripAvt: '',
-        })
-        setIsUploaded(false);
-    };
-
     const handleCreateTrip = () => {
-        if (tripName && location && tripData.tripAvt) {
-            setTripData({
-                ...tripData,
-                tripName: tripName,
-                tripPlace: location
+        if (location) {
+            setPlanData({
+                locationinfor: {
+                    name: location
+                }
+
             });
-            router.push('/create-trip/select-travel');
+            console.log("planData: ", planData);
+            router.push('/create-plan/select-traveler');
         } else {
             alert('Vui lòng cung cấp đầy đủ thông tin');
         }
@@ -142,19 +72,11 @@ const SearchPlace = () => {
                 <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
                     <Ionicons name="arrow-back" size={24} color="black" />
                 </TouchableOpacity>
-                <Text style={styles.headerText}>Viết về chuyến đi của bạn</Text>
+                <Text style={styles.headerText}>Lên kế hoạch cho chuyến đi mới</Text>
             </View>
 
             <View style={styles.inputContainer}>
-                <Text style={styles.titleText}>Tên chuyến đi của bạn</Text>
-                <TextInput
-                    style={styles.textInput}
-                    placeholder="Nhập tên chuyến đi"
-                    value={tripName}
-                    onChangeText={setTripName}
-                />
-
-                <Text style={styles.titleText}>Bạn đang đi đâu?</Text>
+                <Text style={styles.titleText}>Bạn muốn đi đâu?</Text>
                 <View style={styles.inputWrapper}>
                     <TextInput
                         style={styles.textInput}
@@ -178,41 +100,14 @@ const SearchPlace = () => {
                             keyExtractor={(item, index) => index.toString()}
                             renderItem={({ item }) => (
                                 <TouchableOpacity style={styles.suggestionItem} onPress={() => handleSuggestionSelect(item)}>
-                                    <Text style={styles.suggestionText}>{item.ward}</Text>
-                                    <Text style={styles.suggestionSubText}>{item.district}, {item.province}</Text>
+                                    <Text style={styles.suggestionText}>{item.district}</Text>
+                                    <Text style={styles.suggestionSubText}>{item.province}</Text>
                                 </TouchableOpacity>
                             )}
                         />
+
                     </View>
                 )}
-
-                <TouchableOpacity style={styles.imageUploadButton} onPress={pickImage}>
-                    <Text style={styles.imageUploadText}>Chọn hình ảnh cho chuyến đi</Text>
-                </TouchableOpacity>
-                <View>
-                    {selectedImage && (
-                        <View style={{ position: 'relative' }}>
-                            <Image
-                                source={{ uri: selectedImage }}
-                                style={{ width: 176, height: 99 }}
-                            ></Image>
-                            <TouchableOpacity style={styles.clearImageButton} onPress={clearSelectedImage}>
-                                <Entypo name="circle-with-cross" size={24} color={Colors.PRIMARY} />
-                            </TouchableOpacity>
-                        </View>
-                    )}
-
-                    {uploading ? (
-                        <ActivityIndicator animating={true} color={Colors.PRIMARY}
-                            style={styles.imageUploadButton} />
-                    ) : (
-                        selectedImage && !isUploaded && (
-                            <TouchableOpacity style={styles.imageUploadButton} onPress={uploadMedia}>
-                                <Text style={styles.imageUploadText}>Đăng tải</Text>
-                            </TouchableOpacity>
-                        )
-                    )}
-                </View>
 
                 <TouchableOpacity style={styles.createButton} onPress={handleCreateTrip}>
                     <Text style={styles.createButtonText}>Tạo</Text>

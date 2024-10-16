@@ -86,7 +86,7 @@ export default function MyTrip() {
             const trip = item.tripData;
             return (
               <TouchableOpacity
-                onPress={() => navigation.navigate('trip-detail', { trip })} // Điều hướng sang TripDetail và truyền dữ liệu chuyến đi
+                onPress={() => navigation.navigate('detail-trip/trip-detail', { trip })} 
               >
                 <View
                   style={{

@@ -8,26 +8,50 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { CreateTripContext } from "../context/CreateTripContext";
 import { useEffect, useState } from "react";
+import { ActivityIndicator } from "react-native";
+import { View } from "react-native";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [loaded] = useFonts({
+  const [fontsLoaded] = useFonts({
     outfit: require("./../assets/fonts/OpenSans-Regular.ttf"),
     outfitMedium: require("./../assets/fonts/OpenSans-Medium.ttf"),
+    outfitRegular: require("./../assets/fonts/OpenSans-Regular.ttf"),
     outfitSemibold: require("./../assets/fonts/OpenSans-SemiBold.ttf"),
     outfitBold: require("./../assets/fonts/OpenSans-Bold.ttf"),
   });
 
   const [tripData, setTripData] = useState([]);
+  const [planData, setPlanData] = useState([]);
+
+  useEffect(() => {
+    async function hideSplashScreen() {
+      if (fontsLoaded) {
+        await SplashScreen.hideAsync();
+      }
+    }
+    hideSplashScreen();
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
-    <CreateTripContext.Provider value={{ tripData, setTripData }}>
-      <Stack screenOptions={{ headerShown: false }}>
+    <CreateTripContext.Provider value={{ tripData, setTripData, planData, setPlanData }}>
+      <Stack screenOptions={{
+        headerShown: false,
+        // headerTransparent: true,
+      }}>
         {/* <Stack.Screen name="index" options={{ headerShown: false }} /> */}
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="detail-trip/TripDetail" options={{ headerShown: false }} />
+        <Stack.Screen name="detail-trip" options={{ headerShown: false }} />
       </Stack>
     </CreateTripContext.Provider>
   );
