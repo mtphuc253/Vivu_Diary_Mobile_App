@@ -37,7 +37,7 @@ export default function TripDetail() {
   };
 
   const backgroundImageSource = theme === 'Halloween'
-    ? require('../../../../Project/vivu-diary/assets/images/themes/HALLOWEEN_BG.png')
+    ? require('../../assets/images/themes/HALLOWEEN_BG.png')
     : require('../../assets/images/createTrip.png');
 
   const styles = createStyles(theme);

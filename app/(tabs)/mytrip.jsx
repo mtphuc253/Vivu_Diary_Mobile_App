@@ -100,8 +100,8 @@ export default function MyTrip() {
   const styles = createStyles(theme);
 
   const backgroundImageSource = theme === 'Halloween'
-    ? require('../../../../Project/vivu-diary/assets/images/themes/HALLOWEEN_BG.png')
-    : require('../../../../Project/vivu-diary/assets/images/createTrip.png');
+    ? require('../../assets/images/themes/HALLOWEEN_BG.png')
+    : require('../../assets/images/createTrip.png');
   return (
     <ImageBackground
       source={backgroundImageSource}
