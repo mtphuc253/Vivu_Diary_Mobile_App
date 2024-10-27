@@ -1,16 +1,31 @@
-import { View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator, StyleSheet, ImageBackground } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { Colors } from '../../constants/Colors';
 import { db } from '../../configs/FirebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
 import { Searchbar } from 'react-native-paper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Discovery() {
   const [allTrips, setAllTrips] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const navigation = useNavigation(); // Initialize navigation
+  const [theme, setTheme] = useState('default');
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    const fetchUserTheme = async () => {
+      try {
+        const storedTheme = await AsyncStorage.getItem('@theme');
+        setTheme(storedTheme === 'Halloween' ? 'Halloween' : 'default');
+      } catch (error) {
+        console.error('Error fetching theme from AsyncStorage:', error);
+      }
+    };
+
+    fetchUserTheme();
+  }, []);
 
   useEffect(() => {
     const fetchAllTrips = async () => {
@@ -31,13 +46,13 @@ export default function Discovery() {
     fetchAllTrips();
   }, []);
 
-  const handleSearch = query => {
+  const handleSearch = (query) => {
     setSearchQuery(query);
   };
 
   // Filter trips based on the search query
-  const filteredTrips = allTrips.filter(trip => {
-    const userName = trip.userEmail.split('@')[0]; // Get the user name before '@'
+  const filteredTrips = allTrips.filter((trip) => {
+    const userName = trip.uniqueName;
     return userName.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
@@ -45,97 +60,139 @@ export default function Discovery() {
     return <ActivityIndicator size="large" color={Colors.PRIMARY} />;
   }
 
+  const styles = createStyles(theme);
+
   const renderTrip = ({ item }) => {
-    const trip = item.tripData; // Assuming tripData contains the trip details
-    const userName = item.userEmail.split('@')[0]; // Get the user name
+    const trip = item.tripData;
+    const userName = item.uniqueName;
+
+
     return (
       <TouchableOpacity
-        onPress={() => navigation.navigate('detail-trip/trip-detail', { trip })} // Navigate to trip detail
+        onPress={() => navigation.navigate('detail-trip/trip-detail', { trip })}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-          <View
-            style={{
-              backgroundColor: Colors.PRIMARY,
-              borderRadius: 50,
-              width: 40,
-              height: 40,
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginRight: 10,
-            }}
-          >
-            <Text style={{ color: Colors.WHITE, fontSize: 18 }}>
-              {userName.charAt(0).toUpperCase()} {/* Display the first character of the user name */}
+        <View style={styles.userContainer}>
+          <View style={styles.userAvatar}>
+            <Text style={styles.userInitial}>
+              {userName.charAt(0).toUpperCase()}
             </Text>
           </View>
-          <Text style={{ fontFamily: 'outfitBold', fontSize: 16, color: Colors.BLACK }}>
-            {userName} {/* Display user's name */}
-          </Text>
+          <Text style={styles.userName}>{userName}</Text>
         </View>
-        <View
-          style={{
-            backgroundColor: Colors.WHITE,
-            padding: 15,
-            paddingTop: 0,
-            borderWidth: 1,
-            borderColor: '#EDEDED',
-            borderRadius: 15,
-            marginBottom: 20,
-          }}
-        >
-          <Image
-            source={{ uri: trip.tripAvt }}
-            style={{
-              width: '100%',
-              height: 200,
-              borderRadius: 10,
-              marginBottom: 15,
-              marginTop: 15
-            }}
-          />
+        <View style={styles.tripCard}>
+          <Image source={{ uri: trip.tripAvt }} style={styles.tripImage} />
 
-          <Text
-            style={{
-              fontFamily: 'outfitBold',
-              fontSize: 22,
-              textTransform: 'uppercase',
-            }}
-          >
-            {trip.tripName}
-          </Text>
-
-          <Text
-            style={{
-              fontFamily: 'outfitRegular',
-              fontSize: 14,
-              color: Colors.GRAY,
-            }}
-          >
-            {trip.tripPlace}
-          </Text>
+          <Text style={styles.tripName}>{trip.tripName}</Text>
+          <Text style={styles.tripPlace}>{trip.tripPlace}</Text>
         </View>
       </TouchableOpacity>
     );
   };
 
+  const backgroundImageSource = theme === 'Halloween'
+    ? require('../../../../Project/vivu-diary/assets/images/themes/HALLOWEEN_BG.png')
+    : require('../../../../Project/vivu-diary/assets/images/createTrip.png');
+
   return (
-    <View style={{ padding: 25, backgroundColor: Colors.WHITE, height: '100%' }}>
-      <Text style={{ fontFamily: 'outfitBold', fontSize: 35, marginBottom: 20 }}>
-        Khám Phá
-      </Text>
+    <ImageBackground
+      source={backgroundImageSource}
+      style={styles.backgroundImage}
+    >
+      <View style={styles.container}>
+        <Text style={styles.title}>Khám Phá</Text>
 
-      <Searchbar
-        placeholder="..."
-        onChangeText={handleSearch}
-        value={searchQuery}
-        style={{ marginBottom: 20 }}
-      />
+        <Searchbar
+          placeholder="..."
+          onChangeText={handleSearch}
+          value={searchQuery}
+          style={styles.searchbar}
+        />
 
-      <FlatList
-        data={filteredTrips}
-        keyExtractor={(item) => item.id}
-        renderItem={renderTrip}
-      />
-    </View>
+        <FlatList
+          style={styles.flatList}
+          data={filteredTrips}
+          keyExtractor={(item) => item.id}
+          renderItem={renderTrip}
+        />
+      </View>
+    </ImageBackground>
   );
 }
+
+const createStyles = (theme) => StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+    resizeMode: 'cover',
+  },
+
+  container: {
+    padding: 30,
+    // backgroundColor: theme === 'Halloween' ? Colors.BLACK : Colors.WHITE,
+    height: '100%',
+  },
+  title: {
+    fontFamily: 'outfitBold',
+    fontSize: 35,
+    marginBottom: 20,
+  },
+  searchbar: {
+    marginBottom: 20,
+    backgroundColor: theme === 'Halloween' ? Colors.LIGHT_GREY : '#f4f4f4',
+  },
+  userContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  userAvatar: {
+    backgroundColor: theme === 'Halloween' ? Colors.PURPLE : Colors.PRIMARY,
+    borderRadius: 50,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  userInitial: {
+    color: theme === 'Halloween' ? Colors.HALLOWEEN : Colors.WHITE,
+    fontSize: 18,
+  },
+  userName: {
+    fontFamily: 'outfitBold',
+    fontSize: 16,
+    color: theme === 'Halloween' ? Colors.PURPLE : Colors.BLACK,
+  },
+  tripCard: {
+    backgroundColor: theme === 'Halloween' ? Colors.PURPLE : Colors.WHITE,
+    padding: 1,
+    paddingBottom: 15,
+    paddingHorizontal: 0,
+    borderWidth: 1,
+    borderColor: theme === 'Halloween' ? Colors.HALLOWEEN : '#EDEDED',
+    borderRadius: 15,
+    marginBottom: 20,
+  },
+  tripImage: {
+    width: '100%',
+    height: 200,
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+    marginBottom: 15,
+  },
+  tripName: {
+    fontFamily: 'outfitBold',
+    fontSize: 22,
+    textTransform: 'uppercase',
+    paddingHorizontal: 15,
+    color: theme === 'Halloween' ? Colors.HALLOWEEN : Colors.PRIMARY,
+  },
+  tripPlace: {
+    fontFamily: 'outfitRegular',
+    fontSize: 14,
+    color: theme === 'Halloween' ? Colors.LIGHT_ORANGE : Colors.GREY,
+    paddingHorizontal: 15,
+  },
+  flatList: {
+    marginBottom: 40,
+  },
+});

@@ -1,16 +1,17 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { StyleSheet, View, Text, TextInput, SafeAreaView, FlatList, TouchableOpacity, Platform, Image, Alert, ToastAndroid } from 'react-native';
+import { StyleSheet, View, Text, TextInput, SafeAreaView, FlatList, TouchableOpacity, Platform, Image, Alert, ToastAndroid, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import addressData from '../../vn_map_data.json';
 import { Entypo, Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
 import { CreateTripContext } from '../../context/CreateTripContext';
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import * as ImagePicker from 'expo-image-picker'; // For image picking
+import * as ImagePicker from 'expo-image-picker';
 import { storage } from '../../configs/ImageFirebaseConfig';
 import * as FileSystem from 'expo-file-system';
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, MD2Colors } from 'react-native-paper';
+import { ActivityIndicator } from 'react-native-paper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SearchPlace = () => {
     const [location, setLocation] = useState('');
@@ -19,14 +20,22 @@ const SearchPlace = () => {
     const [selectedImage, setSelectedImage] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [isUploaded, setIsUploaded] = useState(false);
+    const [theme, setTheme] = useState('default');
 
     const navigation = useNavigation();
     const router = useRouter();
     const { tripData, setTripData } = useContext(CreateTripContext);
 
+    useEffect(() => {
+        const fetchTheme = async () => {
+            const storedTheme = await AsyncStorage.getItem('@theme');
+            setTheme(storedTheme === 'Halloween' ? 'Halloween' : 'default');
+        };
+        fetchTheme();
+    }, []);
+
     const handleLocationChange = (text) => {
         setLocation(text);
-
         if (text.length > 0) {
             const filteredSuggestions = [];
             addressData.forEach(province => {
@@ -79,12 +88,8 @@ const SearchPlace = () => {
             const { uri } = await FileSystem.getInfoAsync(selectedImage);
             const blob = await new Promise((resolve, reject) => {
                 const xhr = new XMLHttpRequest();
-                xhr.onload = () => {
-                    resolve(xhr.response);
-                };
-                xhr.onerror = (e) => {
-                    reject(new TypeError('Network request failed'));
-                };
+                xhr.onload = () => resolve(xhr.response);
+                xhr.onerror = (e) => reject(new TypeError('Network request failed'));
                 xhr.responseType = 'blob';
                 xhr.open('GET', uri, true);
                 xhr.send(null);
@@ -94,7 +99,6 @@ const SearchPlace = () => {
             const storageRef = ref(storage, filename);
 
             await uploadBytes(storageRef, blob);
-
             const downloadURL = await getDownloadURL(storageRef);
 
             setTripData({
@@ -113,13 +117,12 @@ const SearchPlace = () => {
         }
     };
 
-
     const clearSelectedImage = () => {
         setSelectedImage(null);
         setTripData({
             ...tripData,
             tripAvt: '',
-        })
+        });
         setIsUploaded(false);
     };
 
@@ -136,102 +139,110 @@ const SearchPlace = () => {
         }
     };
 
+    const backgroundImageSource = theme === 'Halloween'
+        ? require('../../../../Project/vivu-diary/assets/images/themes/HALLOWEEN_BG.png')
+        : require('../../assets/images/createTrip.png');
+
+
+    const styles = createStyles(theme);
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
-                <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-                    <Ionicons name="arrow-back" size={24} color="black" />
-                </TouchableOpacity>
-                <Text style={styles.headerText}>Viết về chuyến đi của bạn</Text>
-            </View>
-
-            <View style={styles.inputContainer}>
-                <Text style={styles.titleText}>Tên chuyến đi của bạn</Text>
-                <TextInput
-                    style={styles.textInput}
-                    placeholder="Nhập tên chuyến đi"
-                    value={tripName}
-                    onChangeText={setTripName}
-                />
-
-                <Text style={styles.titleText}>Bạn đang đi đâu?</Text>
-                <View style={styles.inputWrapper}>
-                    <TextInput
-                        style={styles.textInput}
-                        placeholder="Đà Lạt, Đà Nẵng, Hà Nội..."
-                        value={location}
-                        onChangeText={handleLocationChange}
-                        autoCompleteType="street-address"
-                        autoCorrect={false}
-                    />
-                    {location.length > 0 && (
-                        <TouchableOpacity style={styles.clearButton} onPress={handleClearInput}>
-                            <Entypo name="circle-with-cross" size={18} color="grey" />
-                        </TouchableOpacity>
-                    )}
+        <ImageBackground source={backgroundImageSource} style={styles.backgroundImage}>
+            <SafeAreaView style={styles.container}>
+                <View style={styles.header}>
+                    <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+                        <Ionicons name="arrow-back" size={24} color={theme === 'Halloween' ? Colors.PURPLE : Colors.BLACK} />
+                    </TouchableOpacity>
+                    <Text style={styles.headerText}>Viết về chuyến đi của bạn</Text>
                 </View>
 
-                {suggestions.length > 0 && (
-                    <View style={styles.suggestionsContainer}>
-                        <FlatList
-                            data={suggestions}
-                            keyExtractor={(item, index) => index.toString()}
-                            renderItem={({ item }) => (
-                                <TouchableOpacity style={styles.suggestionItem} onPress={() => handleSuggestionSelect(item)}>
-                                    <Text style={styles.suggestionText}>{item.ward}</Text>
-                                    <Text style={styles.suggestionSubText}>{item.district}, {item.province}</Text>
-                                </TouchableOpacity>
-                            )}
-                        />
-                    </View>
-                )}
+                <View style={styles.inputContainer}>
+                    <Text style={styles.titleText}>Tên chuyến đi của bạn</Text>
+                    <TextInput
+                        style={styles.textInput}
+                        placeholder="Nhập tên chuyến đi"
+                        value={tripName}
+                        onChangeText={setTripName}
+                    />
 
-                <TouchableOpacity style={styles.imageUploadButton} onPress={pickImage}>
-                    <Text style={styles.imageUploadText}>Chọn hình ảnh cho chuyến đi</Text>
-                </TouchableOpacity>
-                <View>
-                    {selectedImage && (
-                        <View style={{ position: 'relative' }}>
-                            <Image
-                                source={{ uri: selectedImage }}
-                                style={{ width: 176, height: 99 }}
-                            ></Image>
-                            <TouchableOpacity style={styles.clearImageButton} onPress={clearSelectedImage}>
-                                <Entypo name="circle-with-cross" size={24} color={Colors.PRIMARY} />
+                    <Text style={styles.titleText}>Bạn đang đi đâu?</Text>
+                    <View style={styles.inputWrapper}>
+                        <TextInput
+                            style={styles.textInput}
+                            placeholder="Đà Lạt, Đà Nẵng, Hà Nội..."
+                            value={location}
+                            onChangeText={handleLocationChange}
+                            autoCompleteType="street-address"
+                            autoCorrect={false}
+                        />
+                        {location.length > 0 && (
+                            <TouchableOpacity style={styles.clearButton} onPress={handleClearInput}>
+                                <Entypo name="circle-with-cross" size={18} color="grey" />
                             </TouchableOpacity>
+                        )}
+                    </View>
+
+                    {suggestions.length > 0 && (
+                        <View style={styles.suggestionsContainer}>
+                            <FlatList
+                                data={suggestions}
+                                keyExtractor={(item, index) => index.toString()}
+                                renderItem={({ item }) => (
+                                    <TouchableOpacity style={styles.suggestionItem} onPress={() => handleSuggestionSelect(item)}>
+                                        <Text style={styles.suggestionText}>{item.ward}</Text>
+                                        <Text style={styles.suggestionSubText}>{item.district}, {item.province}</Text>
+                                    </TouchableOpacity>
+                                )}
+                            />
                         </View>
                     )}
 
-                    {uploading ? (
-                        <ActivityIndicator animating={true} color={Colors.PRIMARY}
-                            style={styles.imageUploadButton} />
-                    ) : (
-                        selectedImage && !isUploaded && (
-                            <TouchableOpacity style={styles.imageUploadButton} onPress={uploadMedia}>
-                                <Text style={styles.imageUploadText}>Đăng tải</Text>
-                            </TouchableOpacity>
-                        )
-                    )}
+                    <TouchableOpacity style={styles.imageUploadButton} onPress={pickImage}>
+                        <Text style={styles.imageUploadText}>Chọn hình ảnh cho chuyến đi</Text>
+                    </TouchableOpacity>
+                    <View>
+                        {selectedImage && (
+                            <View style={{ position: 'relative' }}>
+                                <Image source={{ uri: selectedImage }} style={{ width: 176, height: 99 }} />
+                                <TouchableOpacity style={styles.clearImageButton} onPress={clearSelectedImage}>
+                                    <Entypo name="circle-with-cross" size={24} color={Colors.PRIMARY} />
+                                </TouchableOpacity>
+                            </View>
+                        )}
+
+                        {uploading ? (
+                            <ActivityIndicator animating={true} color={Colors.PRIMARY} style={styles.imageUploadButton} />
+                        ) : (
+                            selectedImage && !isUploaded && (
+                                <TouchableOpacity style={styles.imageUploadButton} onPress={uploadMedia}>
+                                    <Text style={styles.imageUploadText}>Đăng tải</Text>
+                                </TouchableOpacity>
+                            )
+                        )}
+                    </View>
+
+                    <TouchableOpacity style={styles.createButton} onPress={handleCreateTrip}>
+                        <Text style={styles.createButtonText}>Tạo</Text>
+                    </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity style={styles.createButton} onPress={handleCreateTrip}>
-                    <Text style={styles.createButtonText}>Tạo</Text>
-                </TouchableOpacity>
-            </View>
-
-            <View style={styles.emptySpace}></View>
-        </SafeAreaView>
+                <View style={styles.emptySpace}></View>
+            </SafeAreaView>
+        </ImageBackground>
     );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
+    backgroundImage: {
+        flex: 1,
+        resizeMode: 'contain',
+    },
     container: {
         flex: 1,
-        backgroundColor: '#fff',
         paddingTop: Platform.OS === 'android' ? 30 : 0,
+        backgroundColor: 'rgba(255, 255, 255, 0.1)'
     },
     header: {
-        backgroundColor: Colors.WHITE,
+        backgroundColor: theme === 'Halloween' ? 'transparent' : Colors.WHITE,
         padding: 15,
         borderBottomWidth: 1,
         borderBottomColor: '#ccc',
@@ -248,13 +259,16 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
         flex: 1,
+        color: theme === 'Halloween' ? Colors.PURPLE : Colors.BLACK
     },
     titleText: {
         fontSize: 16,
         fontWeight: '600',
         color: '#333',
         marginBottom: 10,
-        fontFamily: 'outfitBold'
+        fontFamily: 'outfitBold',
+        color: theme === 'Halloween' ? Colors.PURPLE : Colors.BLACK
+
     },
     inputContainer: {
         paddingHorizontal: 20,
@@ -267,7 +281,7 @@ const styles = StyleSheet.create({
     textInput: {
         width: '100%',
         height: 50,
-        borderColor: '#ccc',
+        borderColor: theme === 'Halloween' ? Colors.PURPLE : '#ccc',
         borderWidth: 1,
         borderRadius: 8,
         paddingHorizontal: 10,
@@ -310,20 +324,20 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     imageUploadButton: {
-        backgroundColor: Colors.WHITE,
+        backgroundColor: theme === 'Halloween' ? "transparent" : Colors.WHITE,
         borderWidth: 1,
-        borderColor: Colors.PRIMARY,
+        borderColor: theme === 'Halloween' ? Colors.PURPLE : Colors.PRIMARY,
         padding: 15,
         borderRadius: 8,
         alignItems: 'center',
         marginVertical: 10,
     },
     imageUploadText: {
-        color: Colors.PRIMARY,
+        color: theme === 'Halloween' ? Colors.PURPLE : Colors.PRIMARY,
         fontWeight: 'bold',
     },
     createButton: {
-        backgroundColor: Colors.PRIMARY,
+        backgroundColor: theme === 'Halloween' ? Colors.PURPLE : Colors.PRIMARY,
         padding: 15,
         borderRadius: 8,
         alignItems: 'center',

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ToastAndroid } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ToastAndroid, ImageBackground } from 'react-native';
 import { Colors } from '../../../constants/Colors';
 import { useNavigation, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -28,16 +28,14 @@ export default function SignUp() {
 
         createUserWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
-
                 sendEmailVerification(auth.currentUser)
                 .then(() => {
-                    alert("Email xác thực đã được gửi. Vui lòng xác thực")
-                })
+                    alert("Email xác thực đã được gửi. Vui lòng xác thực");
+                });
 
                 const user = userCredential.user;
                 console.log('user: ', user);
                 router.replace('/auth/sign-in');
-                
             })
             .catch((error) => {
                 const errorCode = error.code;
@@ -47,64 +45,64 @@ export default function SignUp() {
     };
 
     return (
-        <View style={styles.container}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-                <Ionicons name="arrow-back" size={24} color="black" />
-            </TouchableOpacity>
+        <ImageBackground 
+            source={require('../../../assets/images/WelcomePage.png')} 
+            style={styles.backgroundImage}
+        >
+            <View style={styles.container}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+                    <Ionicons name="arrow-back" size={24} color="black" />
+                </TouchableOpacity>
 
-            <Text style={styles.heading}>Tạo tài khoản mới</Text>
+                <Text style={styles.heading}>Tạo tài khoản mới</Text>
 
-            <Text style={styles.label}>Tên đăng nhập</Text>
-            <TextInput
-                placeholder="Nhập tên đăng nhập"
-                style={styles.input}
-                placeholderTextColor={Colors.GREY}
-                onChangeText={(value) => {
-                    setFullName(value)
-                }}
-            />
+                <Text style={styles.label}>Tên đăng nhập</Text>
+                <TextInput
+                    placeholder="Nhập tên đăng nhập"
+                    style={styles.input}
+                    placeholderTextColor={Colors.GREY}
+                    onChangeText={(value) => setFullName(value)}
+                />
 
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-                placeholder="Nhập email"
-                style={styles.input}
-                placeholderTextColor={Colors.GREY}
-                keyboardType="email-address"
-                onChangeText={(value) => {
-                    setEmail(value)
-                }}
-            />
+                <Text style={styles.label}>Email</Text>
+                <TextInput
+                    placeholder="Nhập email"
+                    style={styles.input}
+                    placeholderTextColor={Colors.GREY}
+                    keyboardType="email-address"
+                    onChangeText={(value) => setEmail(value)}
+                />
 
-            {/* Nhập mật khẩu */}
-            <Text style={styles.label}>Mật khẩu</Text>
-            <TextInput
-                placeholder="Nhập mật khẩu"
-                style={styles.input}
-                placeholderTextColor={Colors.GREY}
-                secureTextEntry
-                onChangeText={(value) => {
-                    setPassword(value)
-                }}
-            />
+                <Text style={styles.label}>Mật khẩu</Text>
+                <TextInput
+                    placeholder="Nhập mật khẩu"
+                    style={styles.input}
+                    placeholderTextColor={Colors.GREY}
+                    secureTextEntry
+                    onChangeText={(value) => setPassword(value)}
+                />
 
-            {/* Nút Tạo tài khoản */}
-            <TouchableOpacity onPress={OnCreateAccount} style={styles.signUpBtn}>
-                <Text style={styles.signUpText}>Tạo tài khoản</Text>
-            </TouchableOpacity>
+                <TouchableOpacity onPress={OnCreateAccount} style={styles.signUpBtn}>
+                    <Text style={styles.signUpText}>Tạo tài khoản</Text>
+                </TouchableOpacity>
 
-            {/* Nút Đăng nhập */}
-            <TouchableOpacity style={styles.signInBtn} onPress={() => router.push('auth/sign-in')}>
-                <Text style={styles.signInText}>Đăng nhập</Text>
-            </TouchableOpacity>
-        </View>
+                <TouchableOpacity style={styles.signInBtn} onPress={() => router.push('auth/sign-in')}>
+                    <Text style={styles.signInText}>Đăng nhập</Text>
+                </TouchableOpacity>
+            </View>
+        </ImageBackground>
     );
 }
 
 const styles = StyleSheet.create({
+    backgroundImage: {
+        flex: 1,
+        resizeMode: 'cover',
+    },
     container: {
         flex: 1,
         padding: 20,
-        backgroundColor: '#f9f9f9',
+        backgroundColor: 'rgba(255, 255, 255, 0.5)', 
     },
     backBtn: {
         marginTop: 50,

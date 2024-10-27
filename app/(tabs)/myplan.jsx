@@ -86,7 +86,7 @@ export default function MyPlan() {
                                                 <Text style={styles.diningDetailsText}>
                                                     {details.diningDetails.PlaceDetails}
                                                 </Text>
-                                                <Image source={{ uri: details.diningDetails.PlaceImageUrl }} style={styles.diningImage} />
+                                                {/* <Image source={{ uri: details.diningDetails.PlaceImageUrl }} style={styles.diningImage} /> */}
                                                 <Text style={styles.detailText}>Địa điểm: {details.diningDetails.placeName}</Text>
                                                 <Text style={styles.detailText}>Phí vào cửa: {details.diningDetails.entranceFee}</Text>
                                             </View>

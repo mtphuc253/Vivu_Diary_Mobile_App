@@ -12,6 +12,9 @@ export const Colors = {
   GREY: '#777777',
   LIGHT_GREY: '#eaeaea',
   PRIMARY: '#8EACCD',
+  HALLOWEEN: "#ff6200",
+  LIGHT_ORANGE: "#ffc6a3",
+  PURPLE: "#2B0E38",
 
   light: {
     text: '#11181C',
