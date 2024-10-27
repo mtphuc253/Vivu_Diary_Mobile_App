@@ -116,7 +116,7 @@ export default function CreateAlbum() {
     };
 
     const backgroundImageSource = theme === 'Halloween'
-        ? require('../../../../Project/vivu-diary/assets/images/themes/HALLOWEEN_BG.png')
+        ? require('../../assets/images/themes/HALLOWEEN_BG.png')
         : null;
 
     return (
