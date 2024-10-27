@@ -1,10 +1,28 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
-import { FontAwesome, MaterialIcons, AntDesign, FontAwesome6, Ionicons, SimpleLineIcons } from '@expo/vector-icons'; // Import các icon cần dùng
+import React, { useEffect, useState } from 'react';
+import { FontAwesome, MaterialIcons, AntDesign, FontAwesome6, Ionicons, SimpleLineIcons } from '@expo/vector-icons';
 import { View, StyleSheet } from 'react-native';
 import { Colors } from '../../constants/Colors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function TabLayout() {
+  const [theme, setTheme] = useState('default');
+
+  useEffect(() => {
+    const fetchTheme = async () => {
+      try {
+        const storedTheme = await AsyncStorage.getItem('@theme');
+        setTheme(storedTheme === 'Halloween' ? 'Halloween' : 'default');
+      } catch (error) {
+        console.error('Error fetching theme from AsyncStorage:', error);
+      }
+    };
+
+    fetchTheme();
+  }, []);
+
+  const styles = createStyles(theme);
+
   return (
     <Tabs
       screenOptions={({ route }) => ({
@@ -30,8 +48,8 @@ export default function TabLayout() {
         },
         tabBarStyle: styles.tabBarStyle,
         tabBarItemStyle: { paddingBottom: 10 },
-        tabBarActiveTintColor: Colors.PRIMARY,
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: theme === 'Halloween' ? Colors.HALLOWEEN : Colors.PRIMARY,
+        tabBarInactiveTintColor: theme === 'Halloween' ? Colors.LIGHT_ORANGE : 'gray',
       })}
     >
       <Tabs.Screen name="home" options={{ title: 'Trang chủ' }} />
@@ -43,9 +61,9 @@ export default function TabLayout() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
   tabBarStyle: {
-    backgroundColor: Colors.WHITE,
+    backgroundColor: theme === 'Halloween' ? Colors.BLACK : Colors.WHITE,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     height: 70,
@@ -60,7 +78,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   myTripIconContainer: {
-    backgroundColor: Colors.PRIMARY,
+    backgroundColor: theme === 'Halloween' ? Colors.HALLOWEEN : Colors.PRIMARY,
     width: 70,
     height: 70,
     borderRadius: 35,
@@ -75,6 +93,6 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   myTripIconFocused: {
-    backgroundColor: Colors.PRIMARY,
+    backgroundColor: theme === 'Halloween' ? Colors.HALLOWEEN : Colors.PRIMARY,
   },
 });
