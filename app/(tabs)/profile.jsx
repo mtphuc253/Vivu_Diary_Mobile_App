@@ -150,7 +150,7 @@ export default function Profile() {
 
   return (
     <ImageBackground
-      source={theme === 'Halloween' ? require('../../../../Project/vivu-diary/assets/images/themes/HALLOWEEN_BG.png') : require('../../../../Project/vivu-diary/assets/images/createTrip.png')}
+      source={theme === 'Halloween' ? require('../../assets/images/themes/HALLOWEEN_BG.png') : require('../../assets/images/createTrip.png')}
       style={styles.backgroundImage}
     >
       <View style={styles.container}>
