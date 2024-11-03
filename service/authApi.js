@@ -1,6 +1,7 @@
 import { jwtDecode } from 'jwt-decode';
 import axiosInstance from './config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ToastAndroid } from 'react-native';
 
 const authApi = {
     login: async (userName, password) => {
@@ -58,10 +59,76 @@ const authApi = {
         }
     },
 
+    register: async (fullName, phoneNumber, email, userName, password) => {
+        try {
+            const response = await axiosInstance.post('/Auth/register', {
+                fullName,
+                phoneNumber,
+                email,
+                userName,
+                password,
+            });
+
+            if (response.status === 200 && response.data.status === 1) {
+                return {
+                    success: true,
+                    message: response.data.message,
+                    data: response.data.data,
+                };
+            } else {
+                ToastAndroid.show(response.data.message || 'Đăng ký không thành công', ToastAndroid.LONG);
+                return {
+                    success: false,
+                    message: response.data.message || 'Đăng ký không thành công',
+                };
+            }
+        } catch (error) {
+            console.error('Error during registration:', error);
+            ToastAndroid.show('Có lỗi xảy ra. Vui lòng thử lại sau.', ToastAndroid.LONG);
+            return {
+                success: false,
+                message: 'An error occurred. Please try again later.',
+            };
+        }
+    },
+
+    verifyEmail: async (email, otp) => {
+        try {
+            const response = await axiosInstance.post('/Auth/verify-email', {
+                email,
+                otp,
+            });
+
+            if (response.status === 200 && response.data.status === 1) {
+                if (response.data.data.isVerified) {
+                    ToastAndroid.show('Xác thực thành công', ToastAndroid.SHORT);
+                    return {
+                        success: true,
+                        message: response.data.message,
+                        isVerified: response.data.data.isVerified,
+                    };
+                }
+            } else {
+                ToastAndroid.show(response.data.message || 'Xác thực không thành công', ToastAndroid.LONG);
+                return {
+                    success: false,
+                    message: response.data.message || 'Xác thực không thành công',
+                };
+            }
+        } catch (error) {
+            console.error('Error during email verification:', error);
+            ToastAndroid.show('Có lỗi xảy ra. Vui lòng thử lại sau.', ToastAndroid.LONG);
+            return {
+                success: false,
+                message: 'An error occurred. Please try again later.',
+            };
+        }
+    },
+
     logout: async () => {
         try {
             await AsyncStorage.multiRemove([
-                '@token', '@userId', '@mobilePhone', '@userName', 
+                '@token', '@userId', '@mobilePhone', '@userName',
                 '@uniqueName', '@userEmail', '@isPremium', '@theme'
             ]);
             return {
