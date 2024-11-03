@@ -1,18 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ToastAndroid, ImageBackground } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ToastAndroid, ImageBackground, Modal, ActivityIndicator } from 'react-native';
 import { Colors } from '../../../constants/Colors';
 import { useNavigation, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { auth } from './../../../configs/FirebaseConfig';
-import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
+import authApi from '../../../service/authApi'; // Import authApi của bạn
 
 export default function SignUp() {
     const navigation = useNavigation();
     const router = useRouter();
 
-    const [email, setEmail] = useState();
-    const [password, setPassword] = useState();
-    const [fullName, setFullName] = useState();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [fullName, setFullName] = useState('');
+    const [userName, setUserName] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [otp, setOtp] = useState('');
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         navigation.setOptions({
@@ -20,28 +24,40 @@ export default function SignUp() {
         });
     }, []);
 
-    const OnCreateAccount = () => {
-        if (!email && !password && !fullName) {
+    const onCreateAccount = async () => {
+        if (!email || !password || !fullName || !userName || !phoneNumber) {
             ToastAndroid.show('Vui lòng nhập đầy đủ thông tin', ToastAndroid.LONG);
             return;
         }
 
-        createUserWithEmailAndPassword(auth, email, password)
-            .then((userCredential) => {
-                sendEmailVerification(auth.currentUser)
-                .then(() => {
-                    alert("Email xác thực đã được gửi. Vui lòng xác thực");
-                });
+        const response = await authApi.register(fullName, phoneNumber, email, userName, password);
+        if (response.success) {
+            ToastAndroid.show('Đăng ký thành công. Vui lòng xác thực OTP.', ToastAndroid.LONG);
+            setIsModalVisible(true); // Hiển thị Modal nhập OTP
+        } else {
+            ToastAndroid.show(response.message, ToastAndroid.LONG);
+        }
+    };
 
-                const user = userCredential.user;
-                console.log('user: ', user);
+    const onVerifyEmail = async () => {
+        if (!otp) {
+            ToastAndroid.show('Vui lòng nhập mã OTP', ToastAndroid.LONG);
+            return;
+        }
+
+        setIsLoading(true); // Hiển thị loading
+        try {
+            const response = await authApi.verifyEmail(email, otp);
+            if (response.success) {
+                ToastAndroid.show('Xác thực thành công!', ToastAndroid.SHORT);
+                setIsModalVisible(false);
                 router.replace('/auth/sign-in');
-            })
-            .catch((error) => {
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                console.log(errorMessage, errorCode);
-            });
+            } else {
+                ToastAndroid.show(response.message, ToastAndroid.LONG);
+            }
+        } finally {
+            setIsLoading(false); // Ẩn loading
+        }
     };
 
     return (
@@ -56,12 +72,29 @@ export default function SignUp() {
 
                 <Text style={styles.heading}>Tạo tài khoản mới</Text>
 
+                <Text style={styles.label}>Tên đầy đủ</Text>
+                <TextInput
+                    placeholder="Nhập tên đầy đủ"
+                    style={styles.input}
+                    placeholderTextColor={Colors.GREY}
+                    onChangeText={(value) => setFullName(value)}
+                />
+
+                <Text style={styles.label}>Số điện thoại</Text>
+                <TextInput
+                    placeholder="Nhập số điện thoại"
+                    style={styles.input}
+                    placeholderTextColor={Colors.GREY}
+                    keyboardType="phone-pad"
+                    onChangeText={(value) => setPhoneNumber(value)}
+                />
+
                 <Text style={styles.label}>Tên đăng nhập</Text>
                 <TextInput
                     placeholder="Nhập tên đăng nhập"
                     style={styles.input}
                     placeholderTextColor={Colors.GREY}
-                    onChangeText={(value) => setFullName(value)}
+                    onChangeText={(value) => setUserName(value)}
                 />
 
                 <Text style={styles.label}>Email</Text>
@@ -82,13 +115,48 @@ export default function SignUp() {
                     onChangeText={(value) => setPassword(value)}
                 />
 
-                <TouchableOpacity onPress={OnCreateAccount} style={styles.signUpBtn}>
+                <TouchableOpacity onPress={onCreateAccount} style={styles.signUpBtn}>
                     <Text style={styles.signUpText}>Tạo tài khoản</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.signInBtn} onPress={() => router.push('auth/sign-in')}>
                     <Text style={styles.signInText}>Đăng nhập</Text>
                 </TouchableOpacity>
+
+                {/* Modal nhập mã OTP */}
+                <Modal
+                    visible={isModalVisible}
+                    transparent={true}
+                    animationType="slide"
+                >
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.modalTitle}>Xác thực OTP</Text>
+                            <TextInput
+                                placeholder="Nhập mã OTP"
+                                style={styles.otpInput}
+                                placeholderTextColor={Colors.GREY}
+                                onChangeText={(value) => setOtp(value)}
+                                keyboardType="number-pad"
+                                textAlign="center"
+                            />
+                            <TouchableOpacity
+                                onPress={onVerifyEmail}
+                                style={styles.verifyBtn}
+                                disabled={isLoading}
+                            >
+                                {isLoading ? (
+                                    <ActivityIndicator color="#fff" />
+                                ) : (
+                                    <Text style={styles.verifyText}>Xác thực</Text>
+                                )}
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => setIsModalVisible(false)} style={styles.cancelBtn}>
+                                <Text style={styles.cancelText}>Hủy</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </Modal>
             </View>
         </ImageBackground>
     );
@@ -157,5 +225,64 @@ const styles = StyleSheet.create({
         fontSize: 16,
         textAlign: 'center',
         fontWeight: '500',
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        padding: 20,
+        width: '90%',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 15,
+        color: '#333',
+    },
+    otpInput: {
+        backgroundColor: '#f7f7f7',
+        borderRadius: 8,
+        paddingVertical: 12,
+        paddingHorizontal: 15,
+        fontSize: 18,
+        borderColor: '#ccc',
+        borderWidth: 1,
+        textAlign: 'center',
+        width: '100%',
+        marginBottom: 15,
+    },
+    verifyBtn: {
+        backgroundColor: '#000',
+        paddingVertical: 12,
+        borderRadius: 8,
+        width: '100%',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    verifyText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    cancelBtn: {
+        paddingVertical: 12,
+        borderRadius: 8,
+        width: '100%',
+        alignItems: 'center',
+    },
+    cancelText: {
+        color: 'red',
+        fontSize: 16,
     },
 });

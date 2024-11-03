@@ -89,20 +89,19 @@ export default function Profile() {
       let subscriptionId = 0;
       let amount = option.amount;
 
-      // Map subscription option to URL, ID, and amount
       switch (option.label) {
         case '59.000đ/1 tháng':
-          momoUrl = 'https://me.momo.vn/j8IyuAIPTzs2CkI7uOiW/X7ax65LrPpAEdyv';
+          momoUrl = 'https://me.momo.vn/j8IyuAIPTzs2CkI7uOiW/pnelRLLwMMZ6bKB';
           subscriptionId = 1;
           amount = 59000;
           break;
         case '149.000đ/3 tháng':
-          momoUrl = 'https://me.momo.vn/j8IyuAIPTzs2CkI7uOiW/zPdyw52jJXjEaQr';
+          momoUrl = 'https://me.momo.vn/j8IyuAIPTzs2CkI7uOiW/LDdw055LRMWme1Y';
           subscriptionId = 2;
           amount = 149000;
           break;
         case '499.000đ/1 năm':
-          momoUrl = 'https://me.momo.vn/j8IyuAIPTzs2CkI7uOiW/9wdLZDWE5VgvajP';
+          momoUrl = 'https://me.momo.vn/j8IyuAIPTzs2CkI7uOiW/K9b6Wyy12v4RdEv';
           subscriptionId = 3;
           amount = 499000;
           break;
@@ -122,12 +121,16 @@ export default function Profile() {
       console.log('Dữ liệu thanh toán:', { userId, amount, orderId, subscriptionId });
 
       const response = await paymentApi.createPayment(parseInt(userId), amount, orderId, subscriptionId);
+      console.log("Respone body from API: ", response);
 
       if (response.success) {
         const supported = await Linking.canOpenURL(momoUrl);
         if (supported) {
           Linking.openURL(momoUrl);
           ToastAndroid.show('Chuyển hướng đến Momo...', ToastAndroid.LONG);
+          setTimeout(() => {
+            Updates.reloadAsync();
+          }, 2000); 
         } else {
           ToastAndroid.show('Không thể mở URL', ToastAndroid.LONG);
         }

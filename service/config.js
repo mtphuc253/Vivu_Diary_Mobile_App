@@ -1,7 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE_URL = 'https://vivudiary.azurewebsites.net/api';
+const BASE_URL = 'https://vivudiaryapi.azurewebsites.net/api';
 
 const axiosInstance = axios.create({
     baseURL: BASE_URL,
@@ -14,7 +14,7 @@ axiosInstance.interceptors.request.use(
     async (config) => {
         const token = await AsyncStorage.getItem('@token');
         if (token) {
-            config.headers['Authorization'] = `${token}`;
+            config.headers['Authorization'] = `Bearer ${token}`;
         }
         return config;
     },
