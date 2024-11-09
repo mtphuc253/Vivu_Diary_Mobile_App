@@ -100,7 +100,7 @@ export default function MyTrip() {
   const styles = createStyles(theme);
 
   const backgroundImageSource = theme === 'Halloween'
-    ? require('../../assets/images/themes/HALLOWEEN_BG.png')
+    ? require('../../assets/images/themes/DARK_BG.png')
     : require('../../assets/images/createTrip.png');
   return (
     <ImageBackground
@@ -176,7 +176,7 @@ export default function MyTrip() {
 const createStyles = (theme) => StyleSheet.create({
   backgroundImage: {
     flex: 1,
-    resizeMode: 'cover',
+    resizeMode: 'contain',
   },
   container: {
     flex: 1,
@@ -194,6 +194,7 @@ const createStyles = (theme) => StyleSheet.create({
     fontFamily: 'outfitBold',
     fontSize: 35,
     color: theme === 'Halloween' ? Colors.PURPLE : Colors.BLACK,
+    marginTop: 20
   },
   tripCardContainer: {
     position: 'relative',
@@ -211,15 +212,19 @@ const createStyles = (theme) => StyleSheet.create({
     paddingHorizontal: 0,
     borderWidth: 2,
     borderColor: theme === 'Halloween' ? Colors.BLACK : '#EDEDED',
-    borderRadius: 10,
+    borderTopLeftRadius: 7,
+    borderTopRightRadius: 7,
+    borderBottomRightRadius: 7,
+    borderBottomLeftRadius: 35,
     marginBottom: 0,
     marginTop: 20,
   },
   tripImage: {
     width: '100%',
     height: 200,
-    borderTopLeftRadius: 5,
-    borderTopRightRadius: 5,
+    borderTopLeftRadius: 7,
+    borderTopRightRadius: 7,
+    borderBottomLeftRadius: 35,
     marginBottom: 15,
 
   },
@@ -227,14 +232,15 @@ const createStyles = (theme) => StyleSheet.create({
     fontFamily: 'outfitBold',
     fontSize: 22,
     textTransform: 'uppercase',
-    paddingHorizontal: 15,
+    paddingHorizontal: 25,
     color: theme === 'Halloween' ? Colors.HALLOWEEN : Colors.PRIMARY,
   },
   tripPlace: {
     fontFamily: 'outfitRegular',
     fontSize: 14,
-    color: Colors.LIGHT_ORANGE,
-    paddingHorizontal: 15
+    color: theme === 'Halloween' ? Colors.LIGHT_ORANGE : Colors.GREY,
+    paddingHorizontal: 25,
+    paddingBottom: 10
   },
   addButton: {
     position: 'absolute',

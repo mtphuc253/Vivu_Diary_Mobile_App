@@ -11,13 +11,13 @@ import { getFirestore } from "firebase/firestore";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyCMLiq6f9EUYF21yC4gdFIHmBR7axdl-EY",
-  authDomain: "vivu-app-595f3.firebaseapp.com",
-  projectId: "vivu-app-595f3",
-  storageBucket: "vivu-app-595f3.appspot.com",
-  messagingSenderId: "110544938587",
-  appId: "1:110544938587:web:1968ef7af026a0d9e4017e",
-  measurementId: "G-EF0BCQGRRR"
+  apiKey: "AIzaSyBJB4Xvn8GCE7OFSRnmqtzvLvdlrJjklwU",
+  authDomain: "vivu-travel.firebaseapp.com",
+  projectId: "vivu-travel",
+  storageBucket: "vivu-travel.firebasestorage.app",
+  messagingSenderId: "115345281120",
+  appId: "1:115345281120:web:e32b4a558ccf9192a97305",
+  measurementId: "G-PV9G36H2N9"
 };
 
 // Initialize Firebase

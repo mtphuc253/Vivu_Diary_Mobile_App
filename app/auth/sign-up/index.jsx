@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ToastAndroid, ImageBackground, Modal, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ToastAndroid, ImageBackground, Modal, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Colors } from '../../../constants/Colors';
 import { useNavigation, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -33,7 +33,7 @@ export default function SignUp() {
         const response = await authApi.register(fullName, phoneNumber, email, userName, password);
         if (response.success) {
             ToastAndroid.show('Đăng ký thành công. Vui lòng xác thực OTP.', ToastAndroid.LONG);
-            setIsModalVisible(true); // Hiển thị Modal nhập OTP
+            setIsModalVisible(true);
         } else {
             ToastAndroid.show(response.message, ToastAndroid.LONG);
         }
@@ -45,7 +45,7 @@ export default function SignUp() {
             return;
         }
 
-        setIsLoading(true); // Hiển thị loading
+        setIsLoading(true);
         try {
             const response = await authApi.verifyEmail(email, otp);
             if (response.success) {
@@ -56,108 +56,118 @@ export default function SignUp() {
                 ToastAndroid.show(response.message, ToastAndroid.LONG);
             }
         } finally {
-            setIsLoading(false); // Ẩn loading
+            setIsLoading(false);
         }
     };
 
     return (
-        <ImageBackground 
-            source={require('../../../assets/images/WelcomePage.png')} 
+        <ImageBackground
+            source={require('../../../assets/images/WelcomePage.png')}
             style={styles.backgroundImage}
         >
-            <View style={styles.container}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={24} color="black" />
-                </TouchableOpacity>
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
+            >
+                <ScrollView contentContainerStyle={styles.scrollContainer}>
+                    <View style={styles.container}>
+                        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+                            <Ionicons name="arrow-back" size={24} color="black" />
+                        </TouchableOpacity>
 
-                <Text style={styles.heading}>Tạo tài khoản mới</Text>
+                        <Text style={styles.heading}>Tạo tài khoản mới</Text>
 
-                <Text style={styles.label}>Tên đầy đủ</Text>
-                <TextInput
-                    placeholder="Nhập tên đầy đủ"
-                    style={styles.input}
-                    placeholderTextColor={Colors.GREY}
-                    onChangeText={(value) => setFullName(value)}
-                />
+                        <Text style={styles.label}>Tên đầy đủ</Text>
+                        <TextInput
+                            placeholder="Nhập tên đầy đủ"
+                            style={styles.input}
+                            placeholderTextColor={Colors.GREY}
+                            onChangeText={(value) => setFullName(value)}
+                        />
 
-                <Text style={styles.label}>Số điện thoại</Text>
-                <TextInput
-                    placeholder="Nhập số điện thoại"
-                    style={styles.input}
-                    placeholderTextColor={Colors.GREY}
-                    keyboardType="phone-pad"
-                    onChangeText={(value) => setPhoneNumber(value)}
-                />
+                        <Text style={styles.label}>Số điện thoại</Text>
+                        <TextInput
+                            placeholder="Nhập số điện thoại"
+                            style={styles.input}
+                            placeholderTextColor={Colors.GREY}
+                            keyboardType="phone-pad"
+                            onChangeText={(value) => setPhoneNumber(value)}
+                        />
 
-                <Text style={styles.label}>Tên đăng nhập</Text>
-                <TextInput
-                    placeholder="Nhập tên đăng nhập"
-                    style={styles.input}
-                    placeholderTextColor={Colors.GREY}
-                    onChangeText={(value) => setUserName(value)}
-                />
+                        <Text style={styles.label}>Tên đăng nhập</Text>
+                        <TextInput
+                            placeholder="Nhập tên đăng nhập"
+                            style={styles.input}
+                            placeholderTextColor={Colors.GREY}
+                            onChangeText={(value) => setUserName(value)}
+                        />
 
-                <Text style={styles.label}>Email</Text>
-                <TextInput
-                    placeholder="Nhập email"
-                    style={styles.input}
-                    placeholderTextColor={Colors.GREY}
-                    keyboardType="email-address"
-                    onChangeText={(value) => setEmail(value)}
-                />
+                        <Text style={styles.label}>Email</Text>
+                        <TextInput
+                            placeholder="Nhập email"
+                            style={styles.input}
+                            placeholderTextColor={Colors.GREY}
+                            keyboardType="email-address"
+                            onChangeText={(value) => setEmail(value)}
+                        />
 
-                <Text style={styles.label}>Mật khẩu</Text>
-                <TextInput
-                    placeholder="Nhập mật khẩu"
-                    style={styles.input}
-                    placeholderTextColor={Colors.GREY}
-                    secureTextEntry
-                    onChangeText={(value) => setPassword(value)}
-                />
+                        <Text style={styles.label}>Mật khẩu</Text>
+                        <TextInput
+                            placeholder="Nhập mật khẩu"
+                            style={styles.input}
+                            placeholderTextColor={Colors.GREY}
+                            secureTextEntry
+                            onChangeText={(value) => setPassword(value)}
+                        />
+                        <Text style={styles.passwordHint}>
+                            Mật khẩu cần có ít nhất 8 kí tự, 1 chữ in hoa, 1 chữ thường và số.
+                        </Text>
 
-                <TouchableOpacity onPress={onCreateAccount} style={styles.signUpBtn}>
-                    <Text style={styles.signUpText}>Tạo tài khoản</Text>
-                </TouchableOpacity>
+                        <TouchableOpacity onPress={onCreateAccount} style={styles.signUpBtn}>
+                            <Text style={styles.signUpText}>Tạo tài khoản</Text>
+                        </TouchableOpacity>
 
-                <TouchableOpacity style={styles.signInBtn} onPress={() => router.push('auth/sign-in')}>
-                    <Text style={styles.signInText}>Đăng nhập</Text>
-                </TouchableOpacity>
+                        <TouchableOpacity style={styles.signInBtn} onPress={() => router.push('auth/sign-in')}>
+                            <Text style={styles.signInText}>Đăng nhập</Text>
+                        </TouchableOpacity>
 
-                {/* Modal nhập mã OTP */}
-                <Modal
-                    visible={isModalVisible}
-                    transparent={true}
-                    animationType="slide"
-                >
-                    <View style={styles.modalContainer}>
-                        <View style={styles.modalContent}>
-                            <Text style={styles.modalTitle}>Xác thực OTP</Text>
-                            <TextInput
-                                placeholder="Nhập mã OTP"
-                                style={styles.otpInput}
-                                placeholderTextColor={Colors.GREY}
-                                onChangeText={(value) => setOtp(value)}
-                                keyboardType="number-pad"
-                                textAlign="center"
-                            />
-                            <TouchableOpacity
-                                onPress={onVerifyEmail}
-                                style={styles.verifyBtn}
-                                disabled={isLoading}
-                            >
-                                {isLoading ? (
-                                    <ActivityIndicator color="#fff" />
-                                ) : (
-                                    <Text style={styles.verifyText}>Xác thực</Text>
-                                )}
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={() => setIsModalVisible(false)} style={styles.cancelBtn}>
-                                <Text style={styles.cancelText}>Hủy</Text>
-                            </TouchableOpacity>
-                        </View>
+                        <Modal
+                            visible={isModalVisible}
+                            transparent={true}
+                            animationType="slide"
+                        >
+                            <View style={styles.modalContainer}>
+                                <View style={styles.modalContent}>
+                                    <Text style={styles.modalTitle}>Xác thực OTP</Text>
+                                    <TextInput
+                                        placeholder="Nhập mã OTP"
+                                        style={styles.otpInput}
+                                        placeholderTextColor={Colors.GREY}
+                                        onChangeText={(value) => setOtp(value)}
+                                        keyboardType="number-pad"
+                                        textAlign="center"
+                                    />
+                                    <TouchableOpacity
+                                        onPress={onVerifyEmail}
+                                        style={styles.verifyBtn}
+                                        disabled={isLoading}
+                                    >
+                                        {isLoading ? (
+                                            <ActivityIndicator color="#fff" />
+                                        ) : (
+                                            <Text style={styles.verifyText}>Xác thực</Text>
+                                        )}
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => setIsModalVisible(false)} style={styles.cancelBtn}>
+                                        <Text style={styles.cancelText}>Hủy</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </Modal>
                     </View>
-                </Modal>
-            </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
         </ImageBackground>
     );
 }
@@ -167,10 +177,14 @@ const styles = StyleSheet.create({
         flex: 1,
         resizeMode: 'cover',
     },
+    scrollContainer: {
+        flexGrow: 1,
+        justifyContent: 'center',
+    },
     container: {
         flex: 1,
         padding: 20,
-        backgroundColor: 'rgba(255, 255, 255, 0.5)', 
+        backgroundColor: 'rgba(255, 255, 255, 0.5)',
     },
     backBtn: {
         marginTop: 50,
@@ -285,4 +299,11 @@ const styles = StyleSheet.create({
         color: 'red',
         fontSize: 16,
     },
+    passwordHint: {
+        fontSize: 12,
+        color: 'grey',
+        marginTop: -10,
+        marginBottom: 20,
+    },
+
 });

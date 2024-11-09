@@ -71,7 +71,7 @@ export default function Profile() {
     try {
       const response = await authApi.logout();
       if (response.success) {
-        ToastAndroid.show('Đăng xuất thành công!', ToastAndroid.SHORT);
+        // ToastAndroid.show('Đăng xuất thành công!', ToastAndroid.SHORT);
         router.replace('/auth/sign-in');
       } else {
         ToastAndroid.show('Đăng xuất thất bại. Hãy thử lại.', ToastAndroid.LONG);
@@ -85,64 +85,68 @@ export default function Profile() {
 
   const handleSubscriptionSelect = async (option) => {
     try {
-      let momoUrl = '';
-      let subscriptionId = 0;
-      let amount = option.amount;
+        let momoUrl = '';
+        let subscriptionId = 0;
+        let amount = option.amount;
 
-      switch (option.label) {
-        case '59.000đ/1 tháng':
-          momoUrl = 'https://me.momo.vn/j8IyuAIPTzs2CkI7uOiW/pnelRLLwMMZ6bKB';
-          subscriptionId = 1;
-          amount = 59000;
-          break;
-        case '149.000đ/3 tháng':
-          momoUrl = 'https://me.momo.vn/j8IyuAIPTzs2CkI7uOiW/LDdw055LRMWme1Y';
-          subscriptionId = 2;
-          amount = 149000;
-          break;
-        case '499.000đ/1 năm':
-          momoUrl = 'https://me.momo.vn/j8IyuAIPTzs2CkI7uOiW/K9b6Wyy12v4RdEv';
-          subscriptionId = 3;
-          amount = 499000;
-          break;
-        default:
-          ToastAndroid.show('Gói không hợp lệ', ToastAndroid.SHORT);
-          return;
-      }
-
-      const userId = await AsyncStorage.getItem('@userId');
-      if (!userId) {
-        console.error('User ID not found');
-        return;
-      }
-
-      const orderId = new Date().toISOString();
-
-      console.log('Dữ liệu thanh toán:', { userId, amount, orderId, subscriptionId });
-
-      const response = await paymentApi.createPayment(parseInt(userId), amount, orderId, subscriptionId);
-      console.log("Respone body from API: ", response);
-
-      if (response.success) {
-        const supported = await Linking.canOpenURL(momoUrl);
-        if (supported) {
-          Linking.openURL(momoUrl);
-          ToastAndroid.show('Chuyển hướng đến Momo...', ToastAndroid.LONG);
-          setTimeout(() => {
-            Updates.reloadAsync();
-          }, 2000); 
-        } else {
-          ToastAndroid.show('Không thể mở URL', ToastAndroid.LONG);
+        switch (option.label) {
+            case '59.000đ/1 tháng':
+                momoUrl = 'https://me.momo.vn/j8IyuAIPTzs2CkI7uOiW/pnelRLLwMMZ6bKB';
+                subscriptionId = 1;
+                amount = 59000;
+                break;
+            case '149.000đ/3 tháng':
+                momoUrl = 'https://me.momo.vn/j8IyuAIPTzs2CkI7uOiW/LDdw055LRMWme1Y';
+                subscriptionId = 2;
+                amount = 149000;
+                break;
+            case '499.000đ/1 năm':
+                momoUrl = 'https://me.momo.vn/j8IyuAIPTzs2CkI7uOiW/K9b6Wyy12v4RdEv';
+                subscriptionId = 3;
+                amount = 499000;
+                break;
+            default:
+                ToastAndroid.show('Gói không hợp lệ', ToastAndroid.SHORT);
+                return;
         }
-      } else {
-        ToastAndroid.show(response.message || 'Thanh toán thất bại', ToastAndroid.LONG);
-      }
+
+        const userId = await AsyncStorage.getItem('@userId');
+        if (!userId) {
+            console.error('User ID not found');
+            return;
+        }
+
+        const orderId = new Date().toISOString();
+
+        console.log('Dữ liệu thanh toán:', { userId, amount, orderId, subscriptionId });
+
+        const response = await paymentApi.createPayment(parseInt(userId), amount, orderId, subscriptionId);
+        console.log("Respone body from API: ", response);
+
+        if (response.success) {
+            const supported = await Linking.canOpenURL(momoUrl);
+            if (supported) {
+                Linking.openURL(momoUrl);
+                ToastAndroid.show('Chuyển hướng đến Momo...', ToastAndroid.LONG);
+
+                // Gọi hàm logout và tải lại ứng dụng
+                await handleLogout();
+                setTimeout(() => {
+                    Updates.reloadAsync();
+                }, 2000);
+            } else {
+                ToastAndroid.show('Không thể mở URL', ToastAndroid.LONG);
+            }
+        } else {
+            ToastAndroid.show(response.message || 'Thanh toán thất bại', ToastAndroid.LONG);
+        }
 
     } catch (error) {
-      console.error('Error handling subscription select:', error);
-      ToastAndroid.show('Đã xảy ra lỗi, vui lòng thử lại.', ToastAndroid.LONG);
+        console.error('Error handling subscription select:', error);
+        ToastAndroid.show('Đã xảy ra lỗi, vui lòng thử lại.', ToastAndroid.LONG);
     }
-  };
+};
+
 
   const SubscriptionOptions = [
     { label: '59.000đ/1 tháng', value: '1 month', amount: 59000 },
@@ -153,7 +157,7 @@ export default function Profile() {
 
   return (
     <ImageBackground
-      source={theme === 'Halloween' ? require('../../assets/images/themes/HALLOWEEN_BG.png') : require('../../assets/images/createTrip.png')}
+      source={theme === 'Halloween' ? require('../../assets/images/themes/DARK_BG.png') : require('../../assets/images/createTrip.png')}
       style={styles.backgroundImage}
     >
       <View style={styles.container}>

@@ -77,7 +77,7 @@ export default function StarNewTripCard() {
             color: Colors.WHITE,
           }}
         >
-          Tạo chuyến đi mới
+          Tạo chuyến đi
         </Text>
       </TouchableOpacity>
     </View>
