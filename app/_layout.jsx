@@ -10,6 +10,7 @@ import { CreateTripContext } from "../context/CreateTripContext";
 import { useEffect, useState } from "react";
 import { ActivityIndicator } from "react-native";
 import { View } from "react-native";
+import * as Updates from 'expo-updates';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -26,6 +27,20 @@ export default function RootLayout() {
   const [tripData, setTripData] = useState([]);
   const [planData, setPlanData] = useState([]);
 
+  async function checkForUpdates() {
+    try {
+      const update = await Updates.checkForUpdateAsync();
+      if (update.isAvailable) {
+        await Updates.fetchUpdateAsync();
+        alert('Cập nhật mới đã được tải xuống. Ứng dụng sẽ khởi động lại.');
+        await Updates.reloadAsync();
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Đã xảy ra lỗi khi kiểm tra cập nhật.');
+    }
+  }
+
   useEffect(() => {
     async function hideSplashScreen() {
       if (fontsLoaded) {
@@ -34,6 +49,11 @@ export default function RootLayout() {
     }
     hideSplashScreen();
   }, [fontsLoaded]);
+
+  useEffect(() => {
+    checkForUpdates();
+
+  }, []);
 
   if (!fontsLoaded) {
     return (

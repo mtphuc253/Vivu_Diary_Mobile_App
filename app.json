@@ -29,7 +29,8 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font"
+      "expo-font",
+      "expo-updates"
     ],
     "experiments": {
       "typedRoutes": true
@@ -38,6 +39,12 @@
       "eas": {
         "projectId": "46cb4574-6a06-46a3-a093-5641ed435d54"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/46cb4574-6a06-46a3-a093-5641ed435d54"
     }
   }
 }

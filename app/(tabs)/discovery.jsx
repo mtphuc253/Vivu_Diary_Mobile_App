@@ -90,7 +90,7 @@ export default function Discovery() {
   };
 
   const backgroundImageSource = theme === 'Halloween'
-    ? require('../../assets/images/themes/HALLOWEEN_BG.png')
+    ? require('../../assets/images/themes/DARK_BG.png')
     : require('../../assets/images/createTrip.png');
 
   return (
@@ -133,11 +133,11 @@ const createStyles = (theme) => StyleSheet.create({
   title: {
     fontFamily: 'outfitBold',
     fontSize: 35,
-    marginBottom: 20,
+    marginVertical: 20
   },
   searchbar: {
     marginBottom: 20,
-    backgroundColor: theme === 'Halloween' ? Colors.LIGHT_GREY : '#f4f4f4',
+    backgroundColor: theme === 'Halloween' ? Colors.LIGHT_GREY : '#fffefc',
   },
   userContainer: {
     flexDirection: 'row',
@@ -169,28 +169,33 @@ const createStyles = (theme) => StyleSheet.create({
     paddingHorizontal: 0,
     borderWidth: 1,
     borderColor: theme === 'Halloween' ? Colors.HALLOWEEN : '#EDEDED',
-    borderRadius: 15,
+    borderTopLeftRadius: 7,
+    borderTopRightRadius: 7,
+    borderBottomRightRadius: 7,
+    borderBottomLeftRadius: 35,
     marginBottom: 20,
   },
   tripImage: {
     width: '100%',
     height: 200,
-    borderTopLeftRadius: 14,
-    borderTopRightRadius: 14,
+    borderTopLeftRadius: 7,
+    borderTopRightRadius: 7,
+    borderBottomLeftRadius: 35,
     marginBottom: 15,
   },
   tripName: {
     fontFamily: 'outfitBold',
     fontSize: 22,
     textTransform: 'uppercase',
-    paddingHorizontal: 15,
+    paddingHorizontal: 25,
     color: theme === 'Halloween' ? Colors.HALLOWEEN : Colors.PRIMARY,
   },
   tripPlace: {
     fontFamily: 'outfitRegular',
     fontSize: 14,
     color: theme === 'Halloween' ? Colors.LIGHT_ORANGE : Colors.GREY,
-    paddingHorizontal: 15,
+    paddingHorizontal: 25,
+    paddingBottom: 10
   },
   flatList: {
     marginBottom: 40,

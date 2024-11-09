@@ -15,6 +15,7 @@ export const Colors = {
   HALLOWEEN: "#ff6200",
   LIGHT_ORANGE: "#ffc6a3",
   PURPLE: "#2B0E38",
+  DARK_PRIMARY: "#00093E",
 
   light: {
     text: '#11181C',
