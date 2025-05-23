@@ -8,7 +8,7 @@
 
 <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
   <img src="https://firebasestorage.googleapis.com/v0/b/createsyllabusuploading.appspot.com/o/1_Register.jpg?alt=media&amp;token=d24b8c57-e0e5-4ca0-8044-9848cfb72a7d" width="135" height="auto" />
-  <img src="https://firebasestorage.googleapis.com/v0/b/createsyllabusuploading.appspot.com/o/2_Login.jpg?alt=media&amp;token=5380b39f-af51-4622-98c9-06cab2332d51" width="135" height="400" />
+  <img src="https://firebasestorage.googleapis.com/v0/b/createsyllabusuploading.appspot.com/o/2_Login.jpg?alt=media&amp;token=5380b39f-af51-4622-98c9-06cab2332d51" width="135" height="auto" />
   <img src="https://firebasestorage.googleapis.com/v0/b/createsyllabusuploading.appspot.com/o/3_Add_new_diary.jpg?alt=media&amp;token=aedc5db6-7194-4a1c-8cb5-acafb00572e7" width="135" height="auto" />
   <img src="https://firebasestorage.googleapis.com/v0/b/createsyllabusuploading.appspot.com/o/4_Add_albums_in_diary.jpg?alt=media&amp;token=75c67e03-0548-448e-83df-32aa170c2fde" width="135" height="auto" />
   <img src="https://firebasestorage.googleapis.com/v0/b/createsyllabusuploading.appspot.com/o/5_Overview_diary.jpg?alt=media&amp;token=f78f26f0-108f-425c-aa4a-ed9fc46ccb73" width="135" height="auto" />
