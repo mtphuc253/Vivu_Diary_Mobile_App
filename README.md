@@ -1,6 +1,6 @@
 <h1 id="title">Vivu Diary</h1>
 
-<p><img src="https://firebasestorage.googleapis.com/v0/b/createsyllabusuploading.appspot.com/o/1.png?alt=media&token=d3a5bbe1-8bb6-407c-a9ea-1a17efeeb1c9" alt="project-image" width="400"></p>
+<p><img src="https://firebasestorage.googleapis.com/v0/b/createsyllabusuploading.appspot.com/o/start_screen.jpg?alt=media&token=8cc7c9c3-848d-4b53-81a8-f6b263644994" alt="project-image" width="320"></p>
 
 <p id="description">Vivu Diary - Mobile application helps you record and share with your friends the moments in your travel by posting pictures of each location you have passed.</p>
 
